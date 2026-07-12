@@ -8,14 +8,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
     rel="stylesheet"
   />
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/chat.css" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 </head>
 <body>
-  <header class="hero">
+  <header class="hero hero--chat">
     <nav class="navbar wrap" aria-label="Primary">
       <a class="logo" href="index.html">bruno.</a>
       <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle light and dark theme">
@@ -31,16 +32,56 @@
     </nav>
 
     <div class="hero-inner wrap">
-      <h1 class="hero-title">Olá, my name is Bruno!</h1>
-      <p class="hero-lead">
-        I'm a Product Designer with more than 8 years of experience designing
-        digital products, working across large and small companies, crafting
-        mobile and web experiences.
-      </p>
-      <p class="hero-note">Currently working remotely from 🇧🇷 Brazil.</p>
+      <div class="hero-tabs" role="tablist" aria-label="Home sections">
+        <button class="hero-tab is-active" type="button" role="tab" aria-selected="true" data-mode="chat">Ask me</button>
+        <button class="hero-tab" type="button" role="tab" aria-selected="false" data-mode="work">My work</button>
+      </div>
+
+      <div class="hero-modes">
+      <div class="hero-mode hero-mode--chat">
+        <h1 class="hero-title">Olá, my name is Bruno!</h1>
+        <p class="hero-lead hero-lead--chat">
+          <strong>And I design and build digital products, end to end.</strong>
+          <span class="hero-lead-note">Currently working remotely from 🇧🇷 Brazil.</span>
+        </p>
+
+        <form class="chat-box" id="chat-box" aria-label="Ask Bruno's AI anything">
+          <textarea
+            class="chat-box-input"
+            id="chat-input"
+            rows="2"
+            placeholder="Ask me anything..."
+            aria-label="Ask me anything"
+          ></textarea>
+          <div class="chat-box-bar">
+            <div class="chat-box-chips" id="chat-chips">
+              <button type="button" class="chat-chip">Tell me about your work</button>
+              <button type="button" class="chat-chip">How is your design process?</button>
+              <button type="button" class="chat-chip">Can we schedule a call?</button>
+            </div>
+            <div class="chat-box-actions">
+              <button type="submit" class="chat-send" id="chat-send" aria-label="Send question">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 19V5M6 11l6-6 6 6"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="hero-mode hero-mode--work">
+        <p class="hero-lead">
+          I'm a Product Designer with more than 8 years of experience designing
+          digital products, working across large and small companies, crafting
+          mobile and web experiences.
+        </p>
+        <p class="hero-note">Currently working remotely from 🇧🇷 Brazil.</p>
+      </div>
+      </div>
     </div>
 
-    <a class="scroll-cue wrap" href="#work">
+    <a class="scroll-cue wrap hero-scroll-cue" href="#work">
       <span>Scroll to see works</span>
       <span class="scroll-cue-icon">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -81,5 +122,6 @@
 
   <script src="js/data.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/chat.js"></script>
 </body>
 </html>

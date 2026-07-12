@@ -1,17 +1,47 @@
 # Bruno Paradas — Portfolio
 
-A static portfolio site based on the Figma "Portfolio" design. No build step —
-open `index.html` in a browser, or serve the folder. Use the included
-`python3 serve.py` (sends no-cache headers, so edits show on a normal reload),
-or any static server such as `python3 -m http.server`.
+A portfolio site based on the Figma "Portfolio" design: static HTML/CSS/JS plus
+one serverless function (`api/chat.js`) that powers the AI "chat with Bruno"
+feature. For the static pages only, `python3 serve.py` still works; to run the
+chat locally use `vercel dev` (see below).
 
 ## Structure
 
-- `index.html` — main page: navbar, hero, **work** strip, **career**, **other works**, footer
+- `index.html` — main page: navbar, chat hero ("Talk to me" / "See my work"), **work** strip, **career**, **other works**, footer
+- `chat.html` — AI chat page (conversation with an AI version of Bruno)
 - `project.html` — project detail page (driven by the `?project=` URL param)
 - `js/data.js` — **edit this file to add your projects, images, career, and social links**
-- `css/style.css` — all styles (design tokens from Figma at the top)
+- `js/chat.js` — chat logic shared by the hero input and the chat page
+- `api/chat.js` — Vercel serverless function calling the Groq API
+- `content/knowledge.md` — **edit this file to teach the AI about you** (it answers only from here)
+- `css/style.css` — main styles (design tokens from Figma at the top)
+- `css/chat.css` — chat hero + chat page styles
 - `images/` — put your project images here (`images/logos/` holds career logos)
+
+## AI chat
+
+The chat is a small serverless function on Vercel that sends the conversation to
+the Groq API (`llama-3.3-70b-versatile`, free tier) with `content/knowledge.md`
+as its only knowledge source. When a visitor asks to schedule a call, the reply
+triggers an inline Calendly widget (`https://calendly.com/bruno-paradas/30min`).
+
+Running locally:
+
+```sh
+npm install
+vercel dev            # serves the static site + /api/chat on localhost:3000
+```
+
+Requirements:
+
+- `GROQ_API_KEY` set as an environment variable — locally via
+  `vercel env pull` or an `.env.local` file, in production as a Vercel project
+  environment variable. Get a free key at https://console.groq.com/keys
+  (no credit card required).
+- Deploys on **Vercel** (GitHub Pages can't run the function). The
+  `vercel.json` config bundles `content/knowledge.md` with the function.
+
+To change what the AI knows, just edit `content/knowledge.md` and redeploy.
 
 ## Adding your images
 

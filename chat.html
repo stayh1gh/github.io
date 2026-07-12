@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat with Bruno — Bruno Paradas</title>
+  <meta name="description" content="Ask an AI version of Bruno Paradas anything about his work, experience and projects." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/chat.css" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+</head>
+<body class="chat-page">
+  <div class="chat-page-wrap">
+    <header class="chat-header">
+      <a class="chat-back" href="index.html">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 12H4M10 6l-6 6 6 6"></path>
+        </svg>
+        <span>Back to home</span>
+      </a>
+    </header>
+
+    <main class="chat-thread" id="chat-thread" aria-live="polite"></main>
+
+    <form class="chat-box chat-box--page" id="chat-box" aria-label="Ask Bruno's AI anything">
+      <textarea
+        class="chat-box-input"
+        id="chat-input"
+        rows="2"
+        placeholder="Ask me anything..."
+        aria-label="Ask me anything"
+      ></textarea>
+      <div class="chat-box-bar">
+        <div class="chat-box-chips" id="chat-chips">
+          <button type="button" class="chat-chip">Tell me about your work</button>
+          <button type="button" class="chat-chip">How is your design process?</button>
+          <button type="button" class="chat-chip">Can we schedule a call?</button>
+        </div>
+        <div class="chat-box-actions">
+          <button type="submit" class="chat-send" id="chat-send" aria-label="Send question">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 19V5M6 11l6-6 6 6"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script src="js/chat.js"></script>
+</body>
+</html>

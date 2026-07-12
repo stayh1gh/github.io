@@ -464,6 +464,39 @@ function setupCardFade() {
   update();
 }
 
+// Hero tabs: "Talk to me" (chat-only, page scroll locked) vs. "See my work"
+// (classic hero + the scrollable portfolio below). Defaults to chat.
+function setupHeroTabs() {
+  var tabs = Array.from(document.querySelectorAll(".hero-tab[data-mode]"));
+  if (!tabs.length) return;
+
+  function setMode(mode) {
+    document.body.classList.toggle("mode-chat", mode === "chat");
+    document.body.classList.toggle("mode-work", mode === "work");
+    tabs.forEach(function (t) {
+      var active = t.getAttribute("data-mode") === mode;
+      t.classList.toggle("is-active", active);
+      t.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    if (mode === "chat") window.scrollTo(0, 0);
+    // The portfolio sections are display:none in chat mode, so the card-stack
+    // and card-fade code measured a zero-height layout at load — remeasure
+    // once the sections are actually visible.
+    if (mode === "work") window.dispatchEvent(new Event("resize"));
+  }
+
+  tabs.forEach(function (t) {
+    t.addEventListener("click", function () {
+      setMode(t.getAttribute("data-mode"));
+    });
+  });
+
+  // Landing straight on a section (e.g. #work) opens in work mode.
+  var startMode = window.location.hash === "#work" ? "work" : "chat";
+  setMode(startMode);
+}
+
+setupHeroTabs();
 renderFeatures();
 renderCareer();
 renderGallery(document.getElementById("other-gallery"), OTHER_WORKS, "Other work");

@@ -1,0 +1,487 @@
+/* ---------------------------------- */
+/* AI chat — hero entry + chat page   */
+/* Matches Figma nodes 83:1305/83:1183 */
+/* ---------------------------------- */
+
+:root {
+  --chat-card-bg: rgba(255, 255, 255, 0.05);
+  --chat-placeholder: rgba(255, 255, 255, 0.6);
+  --chat-tab-muted: rgba(255, 255, 255, 0.45);
+  --chat-bubble-bg: rgba(255, 255, 255, 0.05);
+  --chat-bubble-fg: #f8f8f6;
+  --chat-meta: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="light"] {
+  --chat-card-bg: #f3f3f1;
+  --chat-placeholder: rgba(22, 22, 22, 0.55);
+  --chat-tab-muted: rgba(22, 22, 22, 0.45);
+  --chat-bubble-bg: #f3f3f1;
+  --chat-bubble-fg: #161616;
+  --chat-meta: rgba(22, 22, 22, 0.55);
+}
+
+/* ---- Hero (index) ---- */
+
+.hero--chat {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero--chat .hero-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+  padding-bottom: 6vh;
+}
+
+/* Both modes are stacked in one grid cell so the container always reserves the
+   height of the taller mode — toggling tabs never shifts the tabs above it.
+   The explicit 1fr column (instead of an implicit auto track) keeps the cell
+   pinned to the container's width instead of growing to fit unwrapped text. */
+.hero-modes {
+  display: grid;
+  grid-template-columns: 1fr;
+  width: 100%;
+}
+
+.hero-mode {
+  grid-area: 1 / 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.hero-mode--work {
+  gap: 24px;
+}
+
+/* The work hero headline: 64px bold, matching the chat tab's title. */
+.hero-mode--work .hero-lead {
+  font-size: clamp(36px, 6.5vw, 64px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* ---- Tab modes: chat vs. see-my-work ---- */
+
+/* Only the active mode is visible; the hidden one still holds its space. */
+.hero-mode {
+  visibility: hidden;
+}
+
+.hero-mode--chat {
+  visibility: visible; /* default before JS sets the body mode */
+}
+
+/* Chat mode (default): only the chat is shown, the rest of the page is locked. */
+body.mode-chat,
+html:has(body.mode-chat) {
+  overflow: hidden;
+}
+
+/* In chat mode the portfolio sections don't exist at all — they come back
+   when the visitor switches to the "My work" tab. */
+body.mode-chat main,
+body.mode-chat .footer {
+  display: none;
+}
+
+/* Hidden (not display:none) so its space is reserved in chat mode too — that
+   keeps the centered hero box, and therefore the tabs, in the same place. */
+body.mode-chat .hero-scroll-cue {
+  visibility: hidden;
+}
+
+/* Work mode: reveal the classic hero + the scrollable page below. */
+body.mode-work .hero-mode--chat {
+  visibility: hidden;
+}
+
+body.mode-work .hero-mode--work {
+  visibility: visible;
+}
+
+.hero-tabs {
+  display: flex;
+  align-items: center;
+}
+
+.hero-tab {
+  appearance: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: -0.02em;
+  color: var(--chat-tab-muted);
+  padding: 12px 16px 14px;
+  border-bottom: 2px solid transparent;
+}
+
+.hero-tab.is-active {
+  color: var(--text-main);
+  border-bottom-color: var(--text-main);
+}
+
+.hero--chat .hero-title {
+  margin: 0;
+  font-size: clamp(36px, 6.5vw, 64px);
+}
+
+.hero-lead--chat {
+  font-size: 20px;
+  line-height: 32px;
+  max-width: none;
+  color: var(--text-main);
+}
+
+.hero-lead--chat strong {
+  font-weight: 500;
+}
+
+.hero-lead-note {
+  font-weight: 300;
+  margin-left: 8px;
+}
+
+/* ---- Chat input card (shared) ---- */
+
+.chat-box {
+  background: var(--chat-card-bg);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 25px 25px 17px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 164px;
+  width: 100%;
+  max-width: 995px;
+}
+
+.hero--chat .chat-box {
+  min-height: 200px;
+}
+
+.chat-box-input {
+  appearance: none;
+  background: none;
+  border: 0;
+  outline: none;
+  resize: none;
+  width: 100%;
+  flex: 1;
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 24px;
+}
+
+.chat-box-input::placeholder {
+  color: var(--chat-placeholder);
+}
+
+.chat-box-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.chat-box-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chat-chip {
+  appearance: none;
+  background: none;
+  cursor: pointer;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 22px;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.chat-chip:hover {
+  border-color: var(--text-subtle);
+  background: rgba(127, 127, 127, 0.08);
+}
+
+.chat-box-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.chat-send {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  height: 32px;
+  width: 32px;
+  border-radius: 100px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: var(--text-main);
+  color: var(--surface-main);
+  transition: opacity 0.15s ease;
+}
+
+.chat-send:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---- Home → chat transition ---- */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Leaving home: the hero content fades out before navigating. */
+  .hero--chat .hero-inner {
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+
+  body.is-leaving .hero--chat .hero-inner {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  /* Arriving on chat: the page eases in. */
+  .chat-page-wrap {
+    animation: chat-page-enter 0.35s ease both;
+  }
+
+  @keyframes chat-page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* ---- Chat page ---- */
+
+.chat-page {
+  min-height: 100vh;
+}
+
+.chat-page-wrap {
+  max-width: var(--content-w);
+  margin: 0 auto;
+  padding: 0 var(--pad);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header {
+  padding: 40px 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--surface-main);
+}
+
+.chat-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 28px;
+}
+
+.chat-thread {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 0 32px;
+  overflow-y: auto;
+}
+
+.chat-msg--user {
+  align-self: flex-end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: min(420px, 80%);
+}
+
+.chat-msg--user .chat-bubble {
+  background: var(--chat-bubble-bg);
+  color: var(--chat-bubble-fg);
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+}
+
+.chat-msg-time {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--chat-meta);
+}
+
+.chat-msg--assistant {
+  align-self: stretch;
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.chat-msg--assistant p {
+  margin-bottom: 16px;
+}
+
+.chat-msg--assistant p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-msg--assistant ul,
+.chat-msg--assistant ol {
+  margin: 0 0 16px 20px;
+}
+
+.chat-msg--assistant a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.chat-msg--assistant img {
+  max-width: min(560px, 100%);
+  border-radius: 12px;
+  margin: 8px 0 16px;
+}
+
+.chat-msg--assistant.is-typing {
+  color: var(--chat-meta);
+  font-style: italic;
+}
+
+.chat-copy {
+  appearance: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--chat-meta);
+  padding: 8px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+}
+
+.chat-copy:hover {
+  color: var(--text-main);
+}
+
+.chat-calendly {
+  width: 100%;
+  height: 700px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+  background: var(--chat-card-bg);
+}
+
+.chat-calendly iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.chat-box--page {
+  max-width: none;
+  margin-bottom: 32px;
+  flex-shrink: 0;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 760px) {
+  .hero--chat {
+    min-height: 88vh;
+  }
+
+  .hero-lead-note {
+    display: block;
+    margin-left: 0;
+  }
+
+  .chat-box {
+    padding: 18px 18px 14px;
+    min-height: 150px;
+  }
+
+  .chat-box-bar {
+    flex-wrap: wrap;
+  }
+
+  .chat-box-chips {
+    order: 2;
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .chat-box-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chat-box-actions {
+    order: 1;
+    margin-left: auto;
+  }
+
+  .chat-header {
+    padding: 24px 0 12px;
+  }
+
+  .chat-msg--user {
+    max-width: 88%;
+  }
+
+  .chat-box--page {
+    margin-bottom: 16px;
+  }
+
+  .chat-calendly {
+    height: 600px;
+  }
+}
