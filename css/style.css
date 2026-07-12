@@ -37,6 +37,16 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Guards against sub-pixel/100vw-vs-scrollbar overflow (e.g. .navbar::before's
+   full-bleed bar) ever producing a visible horizontal scrollbar.
+   Must be `clip`, not `hidden`: overflow-x hidden turns html/body into a
+   scroll container, which silently disables every position:sticky descendant
+   (the work-section card stack) — clip only cuts the paint. */
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   background: var(--surface-main);
   color: var(--text-main);
@@ -1719,21 +1729,18 @@ a.tile:hover .placeholder span {
     object-fit: contain;
   }
 
-  /* Wide UI screen — full width, bleeding to the card edges */
+  /* Wide UI screen — fills the media area with a gap from the card edges */
   .feature-media--screen {
     right: auto;
     justify-content: center;
     align-items: center;
-    width: calc(100% + 48px);
-    margin-left: -24px;
-    margin-right: -24px;
+    width: 100%;
   }
   .feature-media--screen img {
-    width: 100%;
+    width: 92%;
     height: auto;
     max-height: 100%;
-    max-width: 100%;
+    max-width: 92%;
     object-fit: contain;
-    border-radius: 0;
   }
 }

@@ -1,0 +1,9 @@
+{
+  "name": "bruno-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bruno Paradas portfolio — static site plus /api/chat serverless function",
+  "devDependencies": {
+    "vercel": "^55.0.0"
+  }
+}
