@@ -12,7 +12,7 @@ chat locally use `vercel dev` (see below).
 - `project.html` — project detail page (driven by the `?project=` URL param)
 - `js/data.js` — **edit this file to add your projects, images, career, and social links**
 - `js/chat.js` — chat logic shared by the hero input and the chat page
-- `api/chat.js` — Vercel serverless function calling the Groq API
+- `api/chat.js` — Vercel serverless function calling the Claude API
 - `content/knowledge.md` — **edit this file to teach the AI about you** (it answers only from here)
 - `css/style.css` — main styles (design tokens from Figma at the top)
 - `css/chat.css` — chat hero + chat page styles
@@ -21,9 +21,10 @@ chat locally use `vercel dev` (see below).
 ## AI chat
 
 The chat is a small serverless function on Vercel that sends the conversation to
-the Groq API (`llama-3.3-70b-versatile`, free tier) with `content/knowledge.md`
-as its only knowledge source. When a visitor asks to schedule a call, the reply
-triggers an inline Calendly widget (`https://calendly.com/bruno-paradas/30min`).
+the Claude API (`claude-haiku-4-5`) with `content/knowledge.md` as its only
+knowledge source (cached via `cache_control` to keep costs low). When a visitor
+asks to schedule a call, the reply triggers an inline Calendly widget
+(`https://calendly.com/bruno-paradas/30min`).
 
 Running locally:
 
@@ -34,10 +35,11 @@ vercel dev            # serves the static site + /api/chat on localhost:3000
 
 Requirements:
 
-- `GROQ_API_KEY` set as an environment variable — locally via
+- `ANTHROPIC_API_KEY` set as an environment variable — locally via
   `vercel env pull` or an `.env.local` file, in production as a Vercel project
-  environment variable. Get a free key at https://console.groq.com/keys
-  (no credit card required).
+  environment variable. Create a key at https://console.anthropic.com and set a
+  spend limit (actual usage for a portfolio's traffic is a few dollars/month at
+  most, thanks to prompt caching).
 - Deploys on **Vercel** (GitHub Pages can't run the function). The
   `vercel.json` config bundles `content/knowledge.md` with the function.
 

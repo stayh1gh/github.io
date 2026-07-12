@@ -1,15 +1,14 @@
 // Vercel serverless function powering the "chat with Bruno" AI.
 // Reads content/knowledge.md as its only knowledge source and answers as an
-// AI version of Bruno. Requires the GROQ_API_KEY env var on Vercel (free
-// tier at https://console.groq.com/keys).
+// AI version of Bruno. Requires the ANTHROPIC_API_KEY env var on Vercel.
 
 const fs = require("fs");
 const path = require("path");
 
 const MAX_HISTORY = 20; // messages kept server-side as an abuse/cost guardrail
 const MAX_MESSAGE_CHARS = 2000;
-const GROQ_MODEL = "llama-3.3-70b-versatile";
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const CLAUDE_MODEL = "claude-haiku-4-5";
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
 let knowledgeCache = null;
 function loadKnowledge() {
@@ -68,77 +67,13 @@ function buildSystemPrompt() {
   ].join("\n");
 }
 
-function buildReviewPrompt() {
-  return [
-    "You are Bruno's careful editor. You'll see the VISITOR'S LAST MESSAGE and a " +
-      "DRAFT reply his AI assistant is about to send in response. Check the draft " +
-      "against these rules and fix any violation, otherwise leave it as-is:",
-    "",
-    "- No repetition: if two sentences say the same thing in different words (e.g. " +
-      'both "I\'d love to schedule a call" and "Sure, let\'s schedule some time"), ' +
-      "merge them into a single sentence.",
-    "- At most ONE question in the whole reply. If the draft asks two different " +
-      "questions (e.g. offering to show a project AND asking to schedule a call), " +
-      "keep only the single most relevant one and remove or rephrase the other into " +
-      "a plain statement, so the visitor is never asked to answer two things at once.",
-    "- The marker [[SHOW_CALENDLY]] may ONLY appear if the visitor's last message " +
-      "explicitly asked to schedule/book a call, meeting or interview, OR was a " +
-      "clear yes/confirmation replying to an earlier offer to schedule one. If the " +
-      "draft includes the marker but the visitor's last message does not meet that " +
-      "bar, REMOVE the marker entirely and rewrite the ending as a simple, warm " +
-      "yes/no question offering to schedule a call instead (do not show a calendar " +
-      "in that case).",
-    "- When the marker legitimately stays, everything before it must be exactly ONE " +
-      "short, warm sentence confirming the call — never more than one — and it must " +
-      "never mention the word \"Calendly\", the booking URL, or how the scheduling " +
-      "mechanism works. The marker itself must stay on its own last line, exactly as " +
-      "[[SHOW_CALENDLY]], unchanged.",
-    "- Keep the same meaning, facts, tone, and any markdown (links, **bold**, " +
-      "images) from the draft — don't add or remove information, don't invent " +
-      "anything new, just tighten the wording.",
-    "",
-    "Output ONLY the corrected reply text. No preamble, no explanation, no quotes " +
-      "around it — just the final text exactly as it should be sent to the visitor.",
-  ].join("\n");
-}
-
-async function callGroq(apiKey, chatMessages) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
-  try {
-    const groqRes = await fetch(GROQ_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + apiKey,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        max_tokens: 1024,
-        messages: chatMessages,
-      }),
-    });
-    const data = await groqRes.json();
-    if (!groqRes.ok) {
-      return { ok: false, status: groqRes.status, error: data && data.error && data.error.message };
-    }
-    const text =
-      (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ||
-      "";
-    return { ok: true, text };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
     return;
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     res.status(500).json({ error: "Chat is not configured yet." });
     return;
@@ -167,17 +102,37 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const chatMessages = [
-    { role: "system", content: buildSystemPrompt() },
-    ...messages,
-  ];
-
   try {
-    const draft = await callGroq(apiKey, chatMessages);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
 
-    if (!draft.ok) {
-      console.error("chat error:", draft.error);
-      const status = draft.status === 429 ? 429 : 502;
+    const anthropicRes = await fetch(ANTHROPIC_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: CLAUDE_MODEL,
+        max_tokens: 1024,
+        system: [
+          {
+            type: "text",
+            text: buildSystemPrompt(),
+            cache_control: { type: "ephemeral" },
+          },
+        ],
+        messages,
+      }),
+    }).finally(() => clearTimeout(timeout));
+
+    const data = await anthropicRes.json();
+
+    if (!anthropicRes.ok) {
+      console.error("chat error:", data && data.error && data.error.message);
+      const status = anthropicRes.status === 429 ? 429 : 502;
       res.status(status).json({
         error:
           status === 429
@@ -187,29 +142,10 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // Self-review pass: catch repetition or rule slip-ups before sending the
-    // reply out. If this second call fails for any reason, fall back to the
-    // unreviewed draft rather than blocking the response.
-    let reply = draft.text;
-    try {
-      const lastUserMessage = messages[messages.length - 1].content;
-      const reviewed = await callGroq(apiKey, [
-        { role: "system", content: buildReviewPrompt() },
-        {
-          role: "user",
-          content:
-            'VISITOR\'S LAST MESSAGE: "' +
-            lastUserMessage +
-            '"\n\nDRAFT:\n' +
-            draft.text,
-        },
-      ]);
-      if (reviewed.ok && reviewed.text.trim()) {
-        reply = reviewed.text.trim();
-      }
-    } catch (reviewErr) {
-      console.error("review pass failed, using draft:", reviewErr && reviewErr.message);
-    }
+    const reply = (data.content || [])
+      .filter((block) => block.type === "text")
+      .map((block) => block.text)
+      .join("");
 
     res.status(200).json({ reply });
   } catch (err) {
